@@ -294,7 +294,7 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+//            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
 
             List<ScriptChunk> chunks = new ArrayList<>();
             chunks.add(new ScriptChunk(Script.encodeToOpN(threshold), null));
@@ -324,7 +324,7 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+//            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
 
             StringJoiner joiner = new StringJoiner(",");
             for(byte[] pubKey : pubKeyBytes) {
@@ -336,7 +336,8 @@ public enum ScriptType {
 
         @Override
         public String getDescriptor() {
-            return "sortedmulti(";
+//            return "sortedmulti(";
+            return "multi(";
         }
 
         @Override
@@ -1113,7 +1114,7 @@ public enum ScriptType {
 
     public static ScriptType fromDescriptor(String descriptor) {
         List<ScriptType> scriptTypes = Arrays.asList(values());
-        scriptTypes.sort((o1, o2) -> o2.getDescriptor().length() - o1.getDescriptor().length());
+//        scriptTypes.sort((o1, o2) -> o2.getDescriptor().length() - o1.getDescriptor().length());
 
         for(ScriptType scriptType : scriptTypes) {
             if(descriptor.toLowerCase().startsWith(scriptType.getDescriptor())) {

@@ -432,9 +432,17 @@ public class OutputDescriptor {
             builder.append(ScriptType.MULTISIG.getDescriptor());
             StringJoiner joiner = new StringJoiner(",");
             joiner.add(Integer.toString(multisigThreshold));
-            for(ExtendedKey pubKey : sortExtendedPubKeys(extendedPublicKeys.keySet())) {
-                String extKeyString = toString(pubKey, addKeyOrigin);
-                joiner.add(extKeyString);
+            if (/*unsorted ==*/ true) {
+                for(ExtendedKey pubKey : extendedPublicKeys.keySet()) {
+                    String extKeyString = toString(pubKey, addKeyOrigin);
+                    joiner.add(extKeyString);
+                }
+            }
+            else {
+                for(ExtendedKey pubKey : sortExtendedPubKeys(extendedPublicKeys.keySet())) {
+                    String extKeyString = toString(pubKey, addKeyOrigin);
+                    joiner.add(extKeyString);
+                }
             }
             builder.append(joiner.toString());
             builder.append(ScriptType.MULTISIG.getCloseDescriptor());

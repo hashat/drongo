@@ -3,7 +3,7 @@ package com.sparrowwallet.drongo;
 import com.sparrowwallet.drongo.crypto.ChildNumber;
 
 public enum KeyPurpose {
-    RECEIVE(ChildNumber.ZERO), CHANGE(ChildNumber.ONE);
+    RECEIVE(new ChildNumber(20)), CHANGE(new ChildNumber(21));
 
     private final ChildNumber pathIndex;
 
