@@ -2,11 +2,13 @@ package com.sparrowwallet.drongo.policy;
 
 import com.sparrowwallet.drongo.protocol.ScriptType;
 import com.sparrowwallet.drongo.wallet.Keystore;
+import com.sparrowwallet.drongo.policy.SortedMulti;
 
 import java.util.List;
 
 import static com.sparrowwallet.drongo.protocol.ScriptType.*;
 import static com.sparrowwallet.drongo.policy.PolicyType.*;
+
 
 public class Policy {
     private static final String DEFAULT_NAME = "Default";
@@ -36,6 +38,10 @@ public class Policy {
     }
 
     public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, Integer threshold) {
+        return getPolicy(policyType, scriptType, keystores, threshold, SortedMulti.UNSORTED);
+    }
+
+    public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, Integer threshold, SortedMulti sortedMulti) {
         if(SINGLE.equals(policyType)) {
             return new Policy(new Miniscript(scriptType.getDescriptor() + keystores.get(0).getScriptName() + scriptType.getCloseDescriptor()));
         }
@@ -43,7 +49,7 @@ public class Policy {
         if(MULTI.equals(policyType)) {
             StringBuilder builder = new StringBuilder();
             builder.append(scriptType.getDescriptor());
-            builder.append(MULTISIG.getDescriptor());
+            builder.append(MULTISIG.getDescriptor(sortedMulti==SortedMulti.SORTED));
             builder.append(threshold);
             for(Keystore keystore : keystores) {
                 builder.append(",").append(keystore.getScriptName());
@@ -55,7 +61,7 @@ public class Policy {
 
         throw new PolicyException("No standard policy for " + policyType + " policy with script type " + scriptType);
     }
-
+    
     public Policy copy() {
         return new Policy(name, miniscript.copy());
     }

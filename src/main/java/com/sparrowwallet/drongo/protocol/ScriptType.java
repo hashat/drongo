@@ -286,6 +286,11 @@ public enum ScriptType {
 
         @Override
         public Script getOutputScript(int threshold, Collection<ECKey> pubKeys) {
+            return getOutputScript(threshold, pubKeys, MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public Script getOutputScript(int threshold, Collection<ECKey> pubKeys, boolean sortedMulti) {
             if(threshold > pubKeys.size()) {
                 throw new ProtocolException("Threshold of " + threshold + " is greater than number of pubKeys provided (" + pubKeys.size() + ")");
             }
@@ -294,7 +299,9 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            if (sortedMulti) {
+                pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            }
 
             List<ScriptChunk> chunks = new ArrayList<>();
             chunks.add(new ScriptChunk(Script.encodeToOpN(threshold), null));
@@ -313,6 +320,11 @@ public enum ScriptType {
 
         @Override
         public String getOutputDescriptor(Script script) {
+            return getOutputDescriptor(script, MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public String getOutputDescriptor(Script script, boolean sortedMulti) {
             if(!isScriptType(script)) {
                 throw new IllegalArgumentException("Can only create output descriptor from multisig script");
             }
@@ -324,19 +336,26 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            if (sortedMulti) {
+                pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            }
 
             StringJoiner joiner = new StringJoiner(",");
             for(byte[] pubKey : pubKeyBytes) {
                 joiner.add(Utils.bytesToHex(pubKey));
             }
 
-            return getDescriptor() + threshold + "," + joiner.toString() + getCloseDescriptor();
+            return getDescriptor(sortedMulti) + threshold + "," + joiner.toString() + getCloseDescriptor();
         }
 
         @Override
         public String getDescriptor() {
-            return "sortedmulti(";
+            return getDescriptor(MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public String getDescriptor(boolean sortedMulti) {
+            return sortedMulti ? "sortedmulti(" : "multi(";
         }
 
         @Override
@@ -976,6 +995,7 @@ public enum ScriptType {
         }
     };
 
+    private static final boolean MULTISIGISSORTEDDEFAULT = false;
     private final String name;
     private final String description;
     private final String defaultDerivationPath;
@@ -1049,11 +1069,23 @@ public enum ScriptType {
         throw new UnsupportedOperationException("Only defined for MULTISIG script type");
     }
 
+    public Script getOutputScript(int threshold, Collection<ECKey> pubKeys, boolean sortedMulti) {
+        throw new UnsupportedOperationException("Only defined for MULTISIG script type");
+    }
+
     public abstract String getOutputDescriptor(ECKey key);
 
     public abstract String getOutputDescriptor(Script script);
 
+    public String getOutputDescriptor(Script script, boolean sortedMulti) {
+        return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
+    };
+
     public abstract String getDescriptor();
+    
+    public String getDescriptor(boolean sortedMulti) {
+        throw new UnsupportedOperationException("Only defined for MULTISIG script type");
+    };
 
     public String getCloseDescriptor() {
         return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());

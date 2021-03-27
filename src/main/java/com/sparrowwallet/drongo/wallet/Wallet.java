@@ -8,6 +8,7 @@ import com.sparrowwallet.drongo.crypto.ECKey;
 import com.sparrowwallet.drongo.crypto.Key;
 import com.sparrowwallet.drongo.policy.Policy;
 import com.sparrowwallet.drongo.policy.PolicyType;
+import com.sparrowwallet.drongo.policy.SortedMulti;
 import com.sparrowwallet.drongo.protocol.*;
 import com.sparrowwallet.drongo.psbt.PSBT;
 import com.sparrowwallet.drongo.psbt.PSBTInput;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.sparrowwallet.drongo.protocol.ScriptType.*;
+//import static com.sparrowwallet.drongo.protocol.SortedMulti.*;
 import static com.sparrowwallet.drongo.protocol.Transaction.WITNESS_SCALE_FACTOR;
 
 public class Wallet {
@@ -27,6 +29,7 @@ public class Wallet {
     private Network network = Network.get();
     private PolicyType policyType;
     private ScriptType scriptType;
+    private SortedMulti sortedMulti;
     private Policy defaultPolicy;
     private List<Keystore> keystores = new ArrayList<>();
     private final TreeSet<WalletNode> purposeNodes = new TreeSet<>();
@@ -85,6 +88,14 @@ public class Wallet {
 
     public void setScriptType(ScriptType scriptType) {
         this.scriptType = scriptType;
+    }
+
+    public SortedMulti getSortedMulti() {
+        return sortedMulti;
+    }
+
+    public void setSortedMulti(SortedMulti sortedMulti) {
+        this.sortedMulti = sortedMulti;
     }
 
     public Policy getDefaultPolicy() {
@@ -233,7 +244,7 @@ public class Wallet {
             return scriptType.getAddress(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
             return scriptType.getAddress(script);
         } else {
             throw new UnsupportedOperationException("Cannot determine addresses for custom policies");
@@ -250,7 +261,7 @@ public class Wallet {
             return scriptType.getOutputScript(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
             return scriptType.getOutputScript(script);
         } else {
             throw new UnsupportedOperationException("Cannot determine output script for custom policies");
@@ -267,7 +278,7 @@ public class Wallet {
             return scriptType.getOutputDescriptor(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
             return scriptType.getOutputDescriptor(script);
         } else {
             throw new UnsupportedOperationException("Cannot determine output descriptor for custom policies");
@@ -967,6 +978,10 @@ public class Wallet {
             throw new InvalidWalletException(policyType + " wallet needs " + numSigs + " and has " + keystores.size() + " keystores");
         }
 
+        if(policyType.equals(PolicyType.MULTI) && sortedMulti == null) {
+            throw new InvalidWalletException("No sorted/unsorted specified for a MULTI vallet");
+        }
+
         if(containsDuplicateKeystoreLabels()) {
             throw new InvalidWalletException("Wallet keystores have duplicate labels");
         }
@@ -1044,6 +1059,7 @@ public class Wallet {
         Wallet copy = new Wallet(name);
         copy.setPolicyType(policyType);
         copy.setScriptType(scriptType);
+        copy.setSortedMulti(sortedMulti);
         copy.setDefaultPolicy(defaultPolicy.copy());
         for(Keystore keystore : keystores) {
             copy.getKeystores().add(keystore.copy());
