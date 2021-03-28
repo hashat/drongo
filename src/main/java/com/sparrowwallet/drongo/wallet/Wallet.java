@@ -30,6 +30,8 @@ public class Wallet {
     private PolicyType policyType;
     private ScriptType scriptType;
     private SortedMulti sortedMulti;
+    private Integer receiveChId;
+    private Integer changeChId;
     private Policy defaultPolicy;
     private List<Keystore> keystores = new ArrayList<>();
     private final TreeSet<WalletNode> purposeNodes = new TreeSet<>();
@@ -46,14 +48,16 @@ public class Wallet {
     }
 
     public Wallet(String name, PolicyType policyType, ScriptType scriptType) {
-        this(name, policyType, scriptType, SortedMulti.UNSORTED, null);
+        this(name, policyType, scriptType, SortedMulti.UNSORTED, new Integer(0), new Integer(1), null);
     }
 
-    public Wallet(String name, PolicyType policyType, ScriptType scriptType, SortedMulti sortedMulti, Date birthDate) {
+    public Wallet(String name, PolicyType policyType, ScriptType scriptType, SortedMulti sortedMulti, Integer receiveChId, Integer changeChId, Date birthDate) {
         this.name = name;
         this.policyType = policyType;
         this.scriptType = scriptType;
         this.sortedMulti = sortedMulti;
+        this.receiveChId = receiveChId;
+        this.changeChId = changeChId;
         this.birthDate = birthDate;
         this.keystores = Collections.singletonList(new Keystore());
         this.defaultPolicy = Policy.getPolicy(policyType, scriptType, keystores, sortedMulti, null);
@@ -97,6 +101,22 @@ public class Wallet {
 
     public void setSortedMulti(SortedMulti sortedMulti) {
         this.sortedMulti = sortedMulti;
+    }
+
+    public int getReceiveChId() { 
+        return receiveChId == null ? 0 : receiveChId;
+    }
+    
+    public void setReceiveChId(int receiveChId) {
+        this.receiveChId = receiveChId;
+    }
+
+    public int getChangeChId() { 
+        return changeChId == null ? 1 : changeChId;
+    }
+    
+    public void setChangeChId(int changeChId) {
+        this.changeChId = changeChId;
     }
 
     public Policy getDefaultPolicy() {
@@ -151,7 +171,7 @@ public class Wallet {
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
-
+    
     public synchronized WalletNode getNode(KeyPurpose keyPurpose) {
         WalletNode purposeNode;
         Optional<WalletNode> optionalPurposeNode = purposeNodes.stream().filter(node -> node.getKeyPurpose().equals(keyPurpose)).findFirst();
@@ -980,7 +1000,17 @@ public class Wallet {
         }
 
         if(policyType.equals(PolicyType.MULTI) && sortedMulti == null) {
-            throw new InvalidWalletException("No sorted/unsorted specified for a MULTI vallet");
+            //throw new InvalidWalletException("No sorted/unsorted specified for a MULTI wallet");
+            sortedMulti = SortedMulti.UNSORTED;
+        }
+        
+        if(receiveChId == null || changeChId == null) {
+            // throw new InvalidWalletException("No receive and change chain ids specified");
+            receiveChId = new Integer(0);
+            changeChId = new Integer(1);
+        }
+        else if(receiveChId < 0 || changeChId < 0 || receiveChId == changeChId) {
+            throw new InvalidWalletException("One, or the combination, of the receive chain ID and the change chain ID is illegal");
         }
 
         if(containsDuplicateKeystoreLabels()) {
@@ -1061,6 +1091,8 @@ public class Wallet {
         copy.setPolicyType(policyType);
         copy.setScriptType(scriptType);
         copy.setSortedMulti(sortedMulti);
+        copy.receiveChId = receiveChId;
+        copy.changeChId = changeChId;
         copy.setDefaultPolicy(defaultPolicy.copy());
         for(Keystore keystore : keystores) {
             copy.getKeystores().add(keystore.copy());
