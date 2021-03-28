@@ -3,18 +3,14 @@ package com.sparrowwallet.drongo.policy;
 public enum SortedMulti {
     SORTED("Enabled (default)"), UNSORTED("Disabled (compatibility)");
 
-    private String text;
+    private String textLabel;
 
-    SortedMulti(String text) {
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
+    SortedMulti(String textLabel) {
+        this.textLabel = textLabel;
     }
 
     @Override
     public String toString() {
-        return text;
+        return textLabel;
     }
 }
