@@ -8,6 +8,7 @@ import java.util.List;
 
 import static com.sparrowwallet.drongo.protocol.ScriptType.*;
 import static com.sparrowwallet.drongo.policy.PolicyType.*;
+import static com.sparrowwallet.drongo.policy.SortedMulti.SORTED;
 
 
 public class Policy {
@@ -38,10 +39,10 @@ public class Policy {
     }
 
     public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, Integer threshold) {
-        return getPolicy(policyType, scriptType, keystores, threshold, SortedMulti.UNSORTED);
+        return getPolicy(policyType, scriptType, keystores, SortedMulti.UNSORTED, threshold);
     }
 
-    public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, Integer threshold, SortedMulti sortedMulti) {
+    public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, SortedMulti sortedMulti, Integer threshold) {
         if(SINGLE.equals(policyType)) {
             return new Policy(new Miniscript(scriptType.getDescriptor() + keystores.get(0).getScriptName() + scriptType.getCloseDescriptor()));
         }
@@ -49,12 +50,12 @@ public class Policy {
         if(MULTI.equals(policyType)) {
             StringBuilder builder = new StringBuilder();
             builder.append(scriptType.getDescriptor());
-            builder.append(MULTISIG.getDescriptor(sortedMulti==SortedMulti.SORTED));
+            builder.append(MULTISIG.getDescriptor(SORTED.equals(sortedMulti)));
             builder.append(threshold);
             for(Keystore keystore : keystores) {
                 builder.append(",").append(keystore.getScriptName());
             }
-            builder.append(MULTISIG.getCloseDescriptor());
+            builder.append(MULTISIG.getCloseDescriptor(SORTED.equals(sortedMulti)));
             builder.append(scriptType.getCloseDescriptor());
             return new Policy(new Miniscript(builder.toString()));
         }

@@ -18,7 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.sparrowwallet.drongo.protocol.ScriptType.*;
-//import static com.sparrowwallet.drongo.protocol.SortedMulti.*;
+import static com.sparrowwallet.drongo.policy.SortedMulti.SORTED;
 import static com.sparrowwallet.drongo.protocol.Transaction.WITNESS_SCALE_FACTOR;
 
 public class Wallet {
@@ -46,16 +46,17 @@ public class Wallet {
     }
 
     public Wallet(String name, PolicyType policyType, ScriptType scriptType) {
-        this(name, policyType, scriptType, null);
+        this(name, policyType, scriptType, SortedMulti.UNSORTED, null);
     }
 
-    public Wallet(String name, PolicyType policyType, ScriptType scriptType, Date birthDate) {
+    public Wallet(String name, PolicyType policyType, ScriptType scriptType, SortedMulti sortedMulti, Date birthDate) {
         this.name = name;
         this.policyType = policyType;
         this.scriptType = scriptType;
+        this.sortedMulti = sortedMulti;
         this.birthDate = birthDate;
         this.keystores = Collections.singletonList(new Keystore());
-        this.defaultPolicy = Policy.getPolicy(policyType, scriptType, keystores, null);
+        this.defaultPolicy = Policy.getPolicy(policyType, scriptType, keystores, sortedMulti, null);
     }
 
     public String getName() {
@@ -244,7 +245,7 @@ public class Wallet {
             return scriptType.getAddress(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, SORTED.equals(sortedMulti));
             return scriptType.getAddress(script);
         } else {
             throw new UnsupportedOperationException("Cannot determine addresses for custom policies");
@@ -261,7 +262,7 @@ public class Wallet {
             return scriptType.getOutputScript(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, SORTED.equals(sortedMulti));
             return scriptType.getOutputScript(script);
         } else {
             throw new UnsupportedOperationException("Cannot determine output script for custom policies");
@@ -278,8 +279,8 @@ public class Wallet {
             return scriptType.getOutputDescriptor(pubKey);
         } else if(policyType == PolicyType.MULTI) {
             List<ECKey> pubKeys = getPubKeys(keyPurpose, index);
-            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, sortedMulti==SortedMulti.SORTED);
-            return scriptType.getOutputDescriptor(script);
+            Script script = ScriptType.MULTISIG.getOutputScript(defaultPolicy.getNumSignaturesRequired(), pubKeys, SORTED.equals(sortedMulti));
+            return ScriptType.MULTISIG.getOutputDescriptor(script, SORTED.equals(sortedMulti));
         } else {
             throw new UnsupportedOperationException("Cannot determine output descriptor for custom policies");
         }
