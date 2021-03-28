@@ -286,6 +286,12 @@ public enum ScriptType {
 
         @Override
         public Script getOutputScript(int threshold, Collection<ECKey> pubKeys) {
+            throw new UnsupportedOperationException("Hashat> ScriptType.getOutputScript(int threshold, Collection<ECKey> pubKeys) is now overridden, should not be called.");
+//            return getOutputScript(threshold, pubKeys, MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public Script getOutputScript(int threshold, Collection<ECKey> pubKeys, boolean isSorted) {
             if(threshold > pubKeys.size()) {
                 throw new ProtocolException("Threshold of " + threshold + " is greater than number of pubKeys provided (" + pubKeys.size() + ")");
             }
@@ -294,7 +300,9 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            if (isSorted) {
+                pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            }
 
             List<ScriptChunk> chunks = new ArrayList<>();
             chunks.add(new ScriptChunk(Script.encodeToOpN(threshold), null));
@@ -313,6 +321,12 @@ public enum ScriptType {
 
         @Override
         public String getOutputDescriptor(Script script) {
+            throw new UnsupportedOperationException("Hashat> ScriptType.getOutputDescriptor(Script script) is now overridden, should not be called.");
+//            return getOutputDescriptor(script, MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public String getOutputDescriptor(Script script, boolean isSorted) {
             if(!isScriptType(script)) {
                 throw new IllegalArgumentException("Can only create output descriptor from multisig script");
             }
@@ -324,19 +338,28 @@ public enum ScriptType {
             for(ECKey key : pubKeys) {
                 pubKeyBytes.add(key.getPubKey());
             }
-            pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            if (isSorted) {
+                pubKeyBytes.sort(new Utils.LexicographicByteArrayComparator());
+            }
 
             StringJoiner joiner = new StringJoiner(",");
             for(byte[] pubKey : pubKeyBytes) {
                 joiner.add(Utils.bytesToHex(pubKey));
+                joiner.add(Utils.bytesToHex(pubKey));
             }
 
-            return getDescriptor() + threshold + "," + joiner.toString() + getCloseDescriptor();
+            return getDescriptor(isSorted) + threshold + "," + joiner.toString() + getCloseDescriptor(isSorted);
         }
 
         @Override
         public String getDescriptor() {
-            return "sortedmulti(";
+            throw new UnsupportedOperationException("Hashat> ScriptType.getDescriptor() is now overridden, should not be called.");
+//            return getDescriptor(MULTISIGISSORTEDDEFAULT);
+        }
+
+        @Override
+        public String getDescriptor(boolean isSorted) {
+            return isSorted ? "sortedmulti(" : "multi(";
         }
 
         @Override
@@ -976,6 +999,7 @@ public enum ScriptType {
         }
     };
 
+    private static final boolean MULTISIGISSORTEDDEFAULT = false;
     private final String name;
     private final String description;
     private final String defaultDerivationPath;
@@ -1049,14 +1073,31 @@ public enum ScriptType {
         throw new UnsupportedOperationException("Only defined for MULTISIG script type");
     }
 
+    public Script getOutputScript(int threshold, Collection<ECKey> pubKeys, boolean isSorted) {
+        throw new UnsupportedOperationException("Only defined for MULTISIG script type");
+    }
+
     public abstract String getOutputDescriptor(ECKey key);
 
     public abstract String getOutputDescriptor(Script script);
 
+    public String getOutputDescriptor(Script script, boolean isSorted) {
+//        return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
+        throw new UnsupportedOperationException("Hashat> Only defined for MULTISIG script type");
+    };
+
     public abstract String getDescriptor();
+    
+    public String getDescriptor(boolean isSorted) {
+        throw new UnsupportedOperationException("Only defined for MULTISIG script type");
+    };
 
     public String getCloseDescriptor() {
         return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
+    }
+
+    public String getCloseDescriptor(boolean isSorted) {
+        return getDescriptor(isSorted).chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
     }
 
     public abstract boolean isScriptType(Script script);

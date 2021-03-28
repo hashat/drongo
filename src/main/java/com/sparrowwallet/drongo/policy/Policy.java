@@ -2,11 +2,14 @@ package com.sparrowwallet.drongo.policy;
 
 import com.sparrowwallet.drongo.protocol.ScriptType;
 import com.sparrowwallet.drongo.wallet.Keystore;
+import com.sparrowwallet.drongo.policy.SortedMulti;
 
 import java.util.List;
 
 import static com.sparrowwallet.drongo.protocol.ScriptType.*;
 import static com.sparrowwallet.drongo.policy.PolicyType.*;
+import static com.sparrowwallet.drongo.policy.SortedMulti.SORTED;
+
 
 public class Policy {
     private static final String DEFAULT_NAME = "Default";
@@ -36,6 +39,10 @@ public class Policy {
     }
 
     public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, Integer threshold) {
+        return getPolicy(policyType, scriptType, keystores, SortedMulti.UNSORTED, threshold);
+    }
+
+    public static Policy getPolicy(PolicyType policyType, ScriptType scriptType, List<Keystore> keystores, SortedMulti sortedMulti, Integer threshold) {
         if(SINGLE.equals(policyType)) {
             return new Policy(new Miniscript(scriptType.getDescriptor() + keystores.get(0).getScriptName() + scriptType.getCloseDescriptor()));
         }
@@ -43,19 +50,19 @@ public class Policy {
         if(MULTI.equals(policyType)) {
             StringBuilder builder = new StringBuilder();
             builder.append(scriptType.getDescriptor());
-            builder.append(MULTISIG.getDescriptor());
+            builder.append(MULTISIG.getDescriptor(SORTED.equals(sortedMulti)));
             builder.append(threshold);
             for(Keystore keystore : keystores) {
                 builder.append(",").append(keystore.getScriptName());
             }
-            builder.append(MULTISIG.getCloseDescriptor());
+            builder.append(MULTISIG.getCloseDescriptor(SORTED.equals(sortedMulti)));
             builder.append(scriptType.getCloseDescriptor());
             return new Policy(new Miniscript(builder.toString()));
         }
 
         throw new PolicyException("No standard policy for " + policyType + " policy with script type " + scriptType);
     }
-
+    
     public Policy copy() {
         return new Policy(name, miniscript.copy());
     }
