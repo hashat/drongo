@@ -286,7 +286,7 @@ public enum ScriptType {
 
         @Override
         public Script getOutputScript(int threshold, Collection<ECKey> pubKeys) {
-            throw new UnsupportedOperationException("ScriptType.getOutputScript(int threshold, Collection<ECKey> pubKeys) is now overridden, should not be called.");
+            throw new UnsupportedOperationException("Hashat> ScriptType.getOutputScript(int threshold, Collection<ECKey> pubKeys) is now overridden, should not be called.");
 //            return getOutputScript(threshold, pubKeys, MULTISIGISSORTEDDEFAULT);
         }
 
@@ -321,7 +321,7 @@ public enum ScriptType {
 
         @Override
         public String getOutputDescriptor(Script script) {
-            throw new UnsupportedOperationException("ScriptType.getOutputDescriptor(Script script) is now overridden, should not be called.");
+            throw new UnsupportedOperationException("Hashat> ScriptType.getOutputDescriptor(Script script) is now overridden, should not be called.");
 //            return getOutputDescriptor(script, MULTISIGISSORTEDDEFAULT);
         }
 
@@ -353,7 +353,7 @@ public enum ScriptType {
 
         @Override
         public String getDescriptor() {
-            throw new UnsupportedOperationException("ScriptType.getDescriptor() is now overridden, should not be called.");
+            throw new UnsupportedOperationException("Hashat> ScriptType.getDescriptor() is now overridden, should not be called.");
 //            return getDescriptor(MULTISIGISSORTEDDEFAULT);
         }
 
@@ -1083,7 +1083,7 @@ public enum ScriptType {
 
     public String getOutputDescriptor(Script script, boolean isSorted) {
 //        return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
-        throw new UnsupportedOperationException("Only defined for MULTISIG script type");
+        throw new UnsupportedOperationException("Hashat> Only defined for MULTISIG script type");
     };
 
     public abstract String getDescriptor();
