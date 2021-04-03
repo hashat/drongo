@@ -30,8 +30,8 @@ public class Wallet {
     private PolicyType policyType;
     private ScriptType scriptType;
     private SortedMulti sortedMulti;
-    private Integer receiveChId;
-    private Integer changeChId;
+    private KeyPurpose receiveChain;
+    private KeyPurpose changeChain;
     private Policy defaultPolicy;
     private List<Keystore> keystores = new ArrayList<>();
     private final TreeSet<WalletNode> purposeNodes = new TreeSet<>();
@@ -48,7 +48,7 @@ public class Wallet {
     }
 
     public Wallet(String name, PolicyType policyType, ScriptType scriptType) {
-        this(name, policyType, scriptType, SortedMulti.UNSORTED, new Integer(0), new Integer(1), null);
+        this(name, policyType, scriptType, SortedMulti.UNSORTED, 0, 1, null);
     }
 
     public Wallet(String name, PolicyType policyType, ScriptType scriptType, SortedMulti sortedMulti, Integer receiveChId, Integer changeChId, Date birthDate) {
@@ -56,8 +56,8 @@ public class Wallet {
         this.policyType = policyType;
         this.scriptType = scriptType;
         this.sortedMulti = sortedMulti;
-        this.receiveChId = receiveChId;
-        this.changeChId = changeChId;
+        receiveChain = new KeyPurpose(receiveChId);
+        changeChain = new KeyPurpose(changeChId);
         this.birthDate = birthDate;
         this.keystores = Collections.singletonList(new Keystore());
         this.defaultPolicy = Policy.getPolicy(policyType, scriptType, keystores, sortedMulti, null);
@@ -103,20 +103,20 @@ public class Wallet {
         this.sortedMulti = sortedMulti;
     }
 
-    public int getReceiveChId() { 
-        return receiveChId == null ? 0 : receiveChId;
-    }
-    
     public void setReceiveChId(int receiveChId) {
-        this.receiveChId = receiveChId;
+        this.receiveChain = new KeyPurpose(receiveChId);
     }
 
-    public int getChangeChId() { 
-        return changeChId == null ? 1 : changeChId;
+    public void setChangeChId(int changeChId) {
+        this.changeChain = new KeyPurpose(changeChId);
+    }
+
+    public KeyPurpose getReceiveChain() {
+        return receiveChain;
     }
     
-    public void setChangeChId(int changeChId) {
-        this.changeChId = changeChId;
+    public KeyPurpose getChangeChain() {
+        return changeChain;
     }
 
     public Policy getDefaultPolicy() {
@@ -184,6 +184,14 @@ public class Wallet {
 
         purposeNode.fillToIndex(getLookAheadIndex(purposeNode));
         return purposeNode;
+    }
+
+    public WalletNode getRNode() {
+        return getNode(receiveChain);
+    }
+
+    public WalletNode getCNode() {
+        return getNode(changeChain);
     }
 
     public int getLookAheadIndex(WalletNode node) {
@@ -312,8 +320,8 @@ public class Wallet {
 
     public Map<Address, WalletNode> getWalletAddresses() {
         Map<Address, WalletNode> walletAddresses = new LinkedHashMap<>();
-        getWalletAddresses(walletAddresses, getNode(KeyPurpose.RECEIVE));
-        getWalletAddresses(walletAddresses, getNode(KeyPurpose.CHANGE));
+        getWalletAddresses(walletAddresses, getNode(receiveChain));
+        getWalletAddresses(walletAddresses, getNode(changeChain));
         return walletAddresses;
     }
 
@@ -328,7 +336,7 @@ public class Wallet {
     }
 
     public Map<Script, WalletNode> getWalletOutputScripts() {
-        return getWalletOutputScripts(KeyPurpose.RECEIVE, KeyPurpose.CHANGE);
+        return getWalletOutputScripts(receiveChain, changeChain);
     }
 
     public Map<Script, WalletNode> getWalletOutputScripts(KeyPurpose... keyPurposes) {
@@ -351,8 +359,8 @@ public class Wallet {
 
     public Map<BlockTransactionHashIndex, WalletNode> getWalletTxos() {
         Map<BlockTransactionHashIndex, WalletNode> walletTxos = new TreeMap<>();
-        getWalletTxos(walletTxos, getNode(KeyPurpose.RECEIVE));
-        getWalletTxos(walletTxos, getNode(KeyPurpose.CHANGE));
+        getWalletTxos(walletTxos, getNode(receiveChain));
+        getWalletTxos(walletTxos, getNode(changeChain));
         return walletTxos;
     }
 
@@ -370,8 +378,8 @@ public class Wallet {
 
     public Map<BlockTransactionHashIndex, WalletNode> getWalletUtxos(boolean includeMempoolInputs) {
         Map<BlockTransactionHashIndex, WalletNode> walletUtxos = new TreeMap<>();
-        getWalletUtxos(walletUtxos, getNode(KeyPurpose.RECEIVE), includeMempoolInputs);
-        getWalletUtxos(walletUtxos, getNode(KeyPurpose.CHANGE), includeMempoolInputs);
+        getWalletUtxos(walletUtxos, getNode(receiveChain), includeMempoolInputs);
+        getWalletUtxos(walletUtxos, getNode(changeChain), includeMempoolInputs);
         return walletUtxos;
     }
 
@@ -457,7 +465,7 @@ public class Wallet {
      */
     public int getInputWeightUnits() {
         //Estimate assuming an input spending from a fresh receive node - it does not matter this node has no real utxos
-        WalletNode receiveNode = getFreshNode(KeyPurpose.RECEIVE);
+        WalletNode receiveNode = getFreshNode(receiveChain);
 
         Transaction transaction = new Transaction();
         TransactionOutput prevTxOut = transaction.addOutput(1L, getAddress(receiveNode));
@@ -487,7 +495,7 @@ public class Wallet {
     }
 
     public long getCostOfChange(double feeRate, double longTermFeeRate) {
-        WalletNode changeNode = getFreshNode(KeyPurpose.CHANGE);
+        WalletNode changeNode = getFreshNode(changeChain);
         TransactionOutput changeOutput = new TransactionOutput(new Transaction(), 1L, getOutputScript(changeNode));
         return getFee(changeOutput, feeRate, longTermFeeRate);
     }
@@ -558,7 +566,7 @@ public class Wallet {
             long costOfChangeAmt = getCostOfChange(feeRate, longTermFeeRate);
             if(changeAmt > costOfChangeAmt) {
                 //Change output is required, determine new fee once change output has been added
-                WalletNode changeNode = getFreshNode(KeyPurpose.CHANGE);
+                WalletNode changeNode = getFreshNode(changeChain);
                 TransactionOutput changeOutput = new TransactionOutput(transaction, changeAmt, getOutputScript(changeNode));
                 double changeVSize = noChangeVSize + changeOutput.getLength();
                 long changeFeeRequiredAmt = (fee == null ? (long)(feeRate * changeVSize) : fee);
@@ -628,8 +636,8 @@ public class Wallet {
 
     private List<OutputGroup> getGroupedUtxos(List<UtxoFilter> utxoFilters, double feeRate, double longTermFeeRate, boolean groupByAddress, boolean includeMempoolInputs) {
         List<OutputGroup> outputGroups = new ArrayList<>();
-        getGroupedUtxos(outputGroups, getNode(KeyPurpose.RECEIVE), utxoFilters, feeRate, longTermFeeRate, groupByAddress, includeMempoolInputs);
-        getGroupedUtxos(outputGroups, getNode(KeyPurpose.CHANGE), utxoFilters, feeRate, longTermFeeRate, groupByAddress, includeMempoolInputs);
+        getGroupedUtxos(outputGroups, getNode(receiveChain), utxoFilters, feeRate, longTermFeeRate, groupByAddress, includeMempoolInputs);
+        getGroupedUtxos(outputGroups, getNode(changeChain), utxoFilters, feeRate, longTermFeeRate, groupByAddress, includeMempoolInputs);
         return outputGroups;
     }
 
@@ -925,7 +933,7 @@ public class Wallet {
     }
 
     public BitcoinUnit getAutoUnit() {
-        for(KeyPurpose keyPurpose : KeyPurpose.values()) {
+        for (KeyPurpose keyPurpose : List.of(receiveChain,changeChain)) { // for(KeyPurpose keyPurpose : KeyPurpose.values()) {
             for(WalletNode addressNode : getNode(keyPurpose).getChildren()) {
                 for(BlockTransactionHashIndex output : addressNode.getTransactionOutputs()) {
                     if(output.getValue() >= BitcoinUnit.getAutoThreshold()) {
@@ -1000,17 +1008,20 @@ public class Wallet {
         }
 
         if(policyType.equals(PolicyType.MULTI) && sortedMulti == null) {
-            //throw new InvalidWalletException("No sorted/unsorted specified for a MULTI wallet");
-            sortedMulti = SortedMulti.UNSORTED;
+            throw new InvalidWalletException("No sorted/unsorted specified for a MULTI wallet");
         }
         
-        if(receiveChId == null || changeChId == null) {
-            // throw new InvalidWalletException("No receive and change chain ids specified");
-            receiveChId = new Integer(0);
-            changeChId = new Integer(1);
+
+        if (receiveChain == null || receiveChain.getPathIndex().i() < 0) {
+            throw new InvalidWalletException("Receive chain not correctly restored or invalid");
         }
-        else if(receiveChId < 0 || changeChId < 0 || receiveChId == changeChId) {
-            throw new InvalidWalletException("One, or the combination, of the receive chain ID and the change chain ID is illegal");
+
+        if (changeChain == null || changeChain.getPathIndex().i() < 0) {
+            throw new InvalidWalletException("Change chain not correctly restored or invalid");
+        }
+
+        if (receiveChain.equals(changeChain)) {
+            throw new InvalidWalletException("Receive and Change chain IDs are the same, which is invalid");
         }
 
         if(containsDuplicateKeystoreLabels()) {
@@ -1091,8 +1102,8 @@ public class Wallet {
         copy.setPolicyType(policyType);
         copy.setScriptType(scriptType);
         copy.setSortedMulti(sortedMulti);
-        copy.receiveChId = receiveChId;
-        copy.changeChId = changeChId;
+        copy.setReceiveChId(receiveChain.getPathIndex().i());
+        copy.setChangeChId(changeChain.getPathIndex().i());
         copy.setDefaultPolicy(defaultPolicy.copy());
         for(Keystore keystore : keystores) {
             copy.getKeystores().add(keystore.copy());
