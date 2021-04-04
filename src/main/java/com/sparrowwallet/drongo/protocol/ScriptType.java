@@ -287,7 +287,6 @@ public enum ScriptType {
         @Override
         public Script getOutputScript(int threshold, Collection<ECKey> pubKeys) {
             throw new UnsupportedOperationException("Hashat> ScriptType.getOutputScript(int threshold, Collection<ECKey> pubKeys) is now overridden, should not be called.");
-//            return getOutputScript(threshold, pubKeys, MULTISIGISSORTEDDEFAULT);
         }
 
         @Override
@@ -322,7 +321,6 @@ public enum ScriptType {
         @Override
         public String getOutputDescriptor(Script script) {
             throw new UnsupportedOperationException("Hashat> ScriptType.getOutputDescriptor(Script script) is now overridden, should not be called.");
-//            return getOutputDescriptor(script, MULTISIGISSORTEDDEFAULT);
         }
 
         @Override
@@ -354,7 +352,6 @@ public enum ScriptType {
         @Override
         public String getDescriptor() {
             throw new UnsupportedOperationException("Hashat> ScriptType.getDescriptor() is now overridden, should not be called.");
-//            return getDescriptor(MULTISIGISSORTEDDEFAULT);
         }
 
         @Override
@@ -999,7 +996,6 @@ public enum ScriptType {
         }
     };
 
-    private static final boolean MULTISIGISSORTEDDEFAULT = false;
     private final String name;
     private final String description;
     private final String defaultDerivationPath;
@@ -1082,7 +1078,7 @@ public enum ScriptType {
     public abstract String getOutputDescriptor(Script script);
 
     public String getOutputDescriptor(Script script, boolean isSorted) {
-//        return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining());
+//        return getDescriptor().chars().filter(ch -> ch == '(').boxed().map(n -> ")").collect(Collectors.joining()); // Hashat> old
         throw new UnsupportedOperationException("Hashat> Only defined for MULTISIG script type");
     };
 

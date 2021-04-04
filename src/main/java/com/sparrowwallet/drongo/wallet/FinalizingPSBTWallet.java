@@ -32,7 +32,7 @@ public class FinalizingPSBTWallet extends Wallet {
             throw new IllegalArgumentException("Only a fully signed or finalized PSBT can be used");
         }
 
-        WalletNode purposeNode = getNode(new KeyPurpose(0)); // = getNode(KeyPurpose.RECEIVE);
+        WalletNode purposeNode = getNode(new KeyPurpose(0)); // Hashat> old: getNode(KeyPurpose.RECEIVE);
         List<WalletNode> signedNodes = new ArrayList<>(purposeNode.getChildren());
 
         for(int i = 0; i < psbt.getPsbtInputs().size(); i++) {

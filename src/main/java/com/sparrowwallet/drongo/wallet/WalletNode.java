@@ -42,7 +42,7 @@ public class WalletNode implements Comparable<WalletNode> {
 
     public void parseDerivation() {
         this.derivation = KeyDerivation.parsePath(derivationPath);
-        this.keyPurpose = new KeyPurpose(derivation.get(0).i()); // = KeyPurpose.fromChildNumber(derivation.get(0));
+        this.keyPurpose = new KeyPurpose(derivation.get(0).i()); // Hashat> old: KeyPurpose.fromChildNumber(derivation.get(0));
         this.index = derivation.get(derivation.size() - 1).num();
     }
 
