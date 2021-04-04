@@ -933,7 +933,7 @@ public class Wallet {
     }
 
     public BitcoinUnit getAutoUnit() {
-        for (KeyPurpose keyPurpose : List.of(receiveChain,changeChain)) { // for(KeyPurpose keyPurpose : KeyPurpose.values()) {
+        for (KeyPurpose keyPurpose : List.of(receiveChain,changeChain)) { // Hashat> old: for(KeyPurpose keyPurpose : KeyPurpose.values()) {
             for(WalletNode addressNode : getNode(keyPurpose).getChildren()) {
                 for(BlockTransactionHashIndex output : addressNode.getTransactionOutputs()) {
                     if(output.getValue() >= BitcoinUnit.getAutoThreshold()) {
