@@ -10,7 +10,6 @@ import static com.sparrowwallet.drongo.protocol.ScriptType.*;
 import static com.sparrowwallet.drongo.policy.PolicyType.*;
 import static com.sparrowwallet.drongo.policy.SortedMulti.SORTED;
 
-
 public class Policy {
     private static final String DEFAULT_NAME = "Default";
 
@@ -62,7 +61,7 @@ public class Policy {
 
         throw new PolicyException("No standard policy for " + policyType + " policy with script type " + scriptType);
     }
-    
+
     public Policy copy() {
         return new Policy(name, miniscript.copy());
     }
