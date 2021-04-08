@@ -1,17 +1,15 @@
-# Drongo
+# This is a Fork!
 
-Drongo is a Java Bitcoin library built mainly to support [Sparrow Wallet](https://sparrowwallet.com).
+This is a fork of [Drongo](https://github.com/sparrowwallet/drongo), for my own improvement purposes.
 
-## Building
+Please see all details in [craigraw](https://github.com/search?q=user%3Acraigraw&type=users)'s [repository](https://github.com/sparrowwallet).
 
-Drongo can be built with
-
-`./gradlew shadowJar`
-
-## License
+## Original license
 
 Drongo is licensed under the Apache 2 software licence.
 
 ## Credits
+
+[craigraw](https://github.com/craigraw) seems to be original developer behind this [project](https://github.com/sparrowwallet/drongo).
 
 Drongo was inspired by (and is in part derived from) by the [BitcoinJ](https://bitcoinj.github.io/) Bitcoin library.  
