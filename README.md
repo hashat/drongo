@@ -10,6 +10,6 @@ Drongo is licensed under the Apache 2 software licence.
 
 ## Credits
 
-[craigraw](https://github.com/craigraw) seems to be original developer behind this [project](https://github.com/sparrowwallet/drongo).
+[craigraw](https://github.com/craigraw) is original developer behind this [project](https://github.com/sparrowwallet/drongo).
 
 Drongo was inspired by (and is in part derived from) by the [BitcoinJ](https://bitcoinj.github.io/) Bitcoin library.  
