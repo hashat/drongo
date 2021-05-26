@@ -181,6 +181,14 @@ public class Wallet {
         this.masterWallet = masterWallet;
     }
 
+    public Wallet getMasterWallet() {
+        return masterWallet;
+    }
+
+    public void setMasterWallet(Wallet masterWallet) {
+        this.masterWallet = masterWallet;
+    }
+
     public synchronized WalletNode getNode(KeyPurpose keyPurpose) {
         WalletNode purposeNode;
         Optional<WalletNode> optionalPurposeNode = purposeNodes.stream().filter(node -> node.getKeyPurpose().equals(keyPurpose)).findFirst();
